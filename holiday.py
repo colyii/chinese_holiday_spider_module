@@ -114,7 +114,7 @@ def get_holiday(year):
 
 def save_by_mysql(year, data):
 
-    db = MySQLdb.connect("119.90.56.107", "haodba", "hao123mysql123dba", "yiqihao_dev", charset='utf8')
+    db = MySQLdb.connect("127.0.0.1", "root", "", "test", charset='utf8')
 
     for index in range(len(data)):
         ok_data = data[index]
@@ -126,9 +126,17 @@ def save_by_mysql(year, data):
                 cursor = db.cursor()
                 sql = "INSERT INTO ops_holiday(`type`, `name`, `year`, `day`, `status`, `addtime`)" \
                       "VALUES ('%s', '%s', %d, '%s', %d, %d)" % \
-                      ('workday', name, year, workday[day], 1, 123123)
-                print(sql)
+                      ('workday', name, year, workday[day], 1, int(time.time()))
                 cursor.execute(sql)
+                db.autocommit(True)                
+        if holiday:
+            for day in range(len(holiday)):
+                cursor = db.cursor()
+                sql = "INSERT INTO ops_holiday(`type`, `name`, `year`, `day`, `status`, `addtime`)" \
+                      "VALUES ('%s', '%s', %d, '%s', %d, %d)" % \
+                      ('holiday', name, year, holiday[day], 1, int(time.time()))
+                cursor.execute(sql)
+                db.autocommit(True)                
     # 关闭数据库连接
     db.close()
 
@@ -140,7 +148,11 @@ if __name__ == "__main__":
         sys.exit("错误的年份！最小 2007")
     if this_year + 1 < year:
         sys.exit("错误的年份！最大 " + bytes(this_year + 1))
-
     data = get_holiday(year)
-    save_by_mysql(year, data)
-    # print data
+    
+    out_type = input('打印(0) 或 入库(1)：')
+    if out_type == 0:
+        print data
+    if out_type == 1:
+        save_by_mysql(year, data)
+        
