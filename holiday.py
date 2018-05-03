@@ -6,6 +6,7 @@ import re
 from bs4 import BeautifulSoup
 import datetime
 import time
+import sys
 
 def get_url_html(url, encoding=None):
     r = requests.get(url)
@@ -95,6 +96,7 @@ def parse_date(desc, year):
     return []
 
 def get_time_stamp(year, month, day):
+    return "%d-%d-%d" % (year, month, day)
     return int(time.mktime(
         datetime.datetime(
             year, month, day, 0, 0, 0, 0
@@ -109,4 +111,10 @@ def get_holiday(year):
     return None
 
 if __name__ == "__main__":
-    print get_holiday(datetime.datetime.now().year)
+    this_year = datetime.datetime.now().year
+    year = input('请输入年份：')
+    if 2007 > year:
+        sys.exit("错误的年份！最小 2007")
+    if this_year + 1 < year:
+        sys.exit("错误的年份！最大 " + bytes(this_year + 1))
+    print get_holiday(year)
