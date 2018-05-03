@@ -7,6 +7,7 @@ from bs4 import BeautifulSoup
 import datetime
 import time
 import sys
+import MySQLdb
 
 def get_url_html(url, encoding=None):
     r = requests.get(url)
@@ -104,11 +105,33 @@ def get_time_stamp(year, month, day):
     ))
 
 def get_holiday(year):
-    url = "http://sousuo.gov.cn/list.htm?q=&n=15&t=paper&childtype=&subchildtype=gc189&pcodeJiguan=%E5%9B%BD%E5%8A%9E%E5%8F%91%E6%98%8E%E7%94%B5&pcodeYear=&pcodeNum=&location=%25E7%25BB%25BC%25E5%2590%2588%25E6%2594%25BF%25E5%258A%25A1%25E5%2585%25B6%25E4%25BB%2596&sort=pubtime&searchfield=title%3Acontent%3Apcode%3Apuborg%3Akeyword&title=&content=&pcode=&puborg=&timetype=timeqb&mintime=&maxtime="    
+    url = "http://sousuo.gov.cn/list.htm?q=&n=15&t=paper&childtype=&subchildtype=gc189&pcodeJiguan=%E5%9B%BD%E5%8A%9E%E5%8F%91%E6%98%8E%E7%94%B5&pcodeYear=&pcodeNum=&location=%25E7%25BB%25BC%25E5%2590%2588%25E6%2594%25BF%25E5%258A%25A1%25E5%2585%25B6%25E4%25BB%2596&sort=pubtime&searchfield=title%3Acontent%3Apcode%3Apuborg%3Akeyword&title=&content=&pcode=&puborg=&timetype=timeqb&mintime=&maxtime="
     holiday_url = get_holiday_url(year, get_url_html(url))
     if holiday_url:
         return match_holiday(get_url_html(holiday_url, 'utf-8'), year)
     return None
+
+
+def save_by_mysql(year, data):
+
+    db = MySQLdb.connect("119.90.56.107", "haodba", "hao123mysql123dba", "yiqihao_dev", charset='utf8')
+
+    for index in range(len(data)):
+        ok_data = data[index]
+        workday = ok_data['workday']
+        holiday = ok_data['holiday']
+        name = ok_data['name']
+        if workday:
+            for day in range(len(workday)):
+                cursor = db.cursor()
+                sql = "INSERT INTO ops_holiday(`type`, `name`, `year`, `day`, `status`, `addtime`)" \
+                      "VALUES ('%s', '%s', %d, '%s', %d, %d)" % \
+                      ('workday', name, year, workday[day], 1, 123123)
+                print(sql)
+                cursor.execute(sql)
+    # 关闭数据库连接
+    db.close()
+
 
 if __name__ == "__main__":
     this_year = datetime.datetime.now().year
@@ -117,4 +140,7 @@ if __name__ == "__main__":
         sys.exit("错误的年份！最小 2007")
     if this_year + 1 < year:
         sys.exit("错误的年份！最大 " + bytes(this_year + 1))
-    print get_holiday(year)
+
+    data = get_holiday(year)
+    save_by_mysql(year, data)
+    # print data
